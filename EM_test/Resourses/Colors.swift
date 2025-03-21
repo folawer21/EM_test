@@ -13,6 +13,7 @@ enum Colors {
 enum UIColors {
     static let gray = UIColor(hex: "#272729")
     static let black = UIColor(red: 4, green: 4, blue: 4, alpha: 1)
+    static let white = UIColor(hex: "#F4F4F4")
 }
 
 
@@ -34,7 +35,7 @@ extension UIColor {
             
             self.init(red: red, green: green, blue: blue, alpha: 1.0)
         } else {
-            self.init(white: 0.0, alpha: 1.0) // Default to black if invalid hex code
+            self.init(white: 0.0, alpha: 1.0)
         }
     }
 }

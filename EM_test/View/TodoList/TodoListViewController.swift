@@ -1,6 +1,4 @@
 import UIKit
-// TODO: ДОБАВИТЬ склонение текста задач/задача/задачи при изменении количества задач
-
 protocol TodoListViewProtocol: AnyObject {
     
 }
@@ -34,6 +32,11 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         setupSearchController()
         setupButtomView()
         setupNavigationBar()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
     }
     
     private func addSubViews() {
@@ -82,8 +85,9 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         
         countLabel.textColor = .white
         countLabel.font = .systemFont(ofSize: 11, weight: .regular)
-        countLabel.text = "\(presenter.getTodosCount()) Задач"
-        
+        let count = presenter.getTodosCount()
+        countLabel.text = String(format: "%d %@", count, getTaskText(for: count))
+
         addButton.setImage(UIImages.pencil, for: .normal)
         addButton.tintColor = .yellow
         addButton.addTarget(self, action: #selector(addTodo), for: .touchUpInside)
@@ -148,5 +152,20 @@ extension TodoListViewController: UISearchResultsUpdating {
             presenter.filterTasks(with: searchText)
         }
         tableView.reloadData()
+    }
+}
+
+extension TodoListViewController {
+    private func getTaskText(for count: Int) -> String {
+        let lastDigit = count % 10
+        let lastTwoDigits = count % 100
+        
+        if lastDigit == 1 && lastTwoDigits != 11 {
+            return "Задача"
+        } else if lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20) {
+            return "Задачи"
+        } else {
+            return "Задач"
+        }
     }
 }

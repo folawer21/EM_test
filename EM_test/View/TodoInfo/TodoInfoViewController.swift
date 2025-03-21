@@ -11,22 +11,21 @@ final class TodoInfoViewController: UIViewController {
     private let titleTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Заголовок"
-        textField.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        textField.borderStyle = .roundedRect
+        textField.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         return textField
     }()
     
     private let descriptionTextView: UITextView = {
         let textView = UITextView()
         textView.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        textView.textColor = .lightGray
+        textView.textColor = UIColors.white
         textView.text = "Описание"
         return textView
     }()
     
     private let dateLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        label.font = UIFont.systemFont(ofSize: 12, weight: .regular)
         label.textColor = .darkGray
         label.text = DateFormatterHelper.getCurrentDate()
         return label
@@ -44,8 +43,8 @@ final class TodoInfoViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
+        navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.tintColor = .yellow
-        navigationItem.title = "Детали задачи"
         
         let backButton = UIBarButtonItem(title: "Назад", style: .plain, target: self, action: #selector(backTapped))
         navigationItem.backBarButtonItem = backButton
@@ -82,7 +81,7 @@ final class TodoInfoViewController: UIViewController {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             titleTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             titleTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
@@ -93,7 +92,7 @@ final class TodoInfoViewController: UIViewController {
             descriptionTextView.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 16),
             descriptionTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             descriptionTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            descriptionTextView.heightAnchor.constraint(equalToConstant: 150)
+            descriptionTextView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
 }
@@ -112,14 +111,14 @@ extension TodoInfoViewController: UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView.text == "Описание" && textView.textColor == .lightGray {
             textView.text = ""
-            textView.textColor = .black
+            textView.textColor = UIColors.white
         }
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
         if textView.text.isEmpty {
             textView.text = "Описание"
-            textView.textColor = .lightGray
+            textView.textColor = UIColors.white
         }
     }
 }
