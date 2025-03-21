@@ -44,7 +44,8 @@ final class TodoInfoViewController: UIViewController {
     
     private func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.navigationBar.tintColor = .yellow
+        navigationController?.navigationBar.tintColor =  UIColors.yellow
+        
         
         let backButton = UIBarButtonItem(title: "Назад", style: .plain, target: self, action: #selector(backTapped))
         navigationItem.backBarButtonItem = backButton

@@ -1,9 +1,19 @@
 import UIKit
+
 protocol TodoListViewProtocol: AnyObject {
-    
+    func updateUI()
 }
 
 final class TodoListViewController: UIViewController, TodoListViewProtocol {
+    func updateUI() {
+        tableView.reloadData()
+        updateCountLabel()
+    }
+    
+    private func updateCountLabel() {
+        let count = presenter.getTodosCount()
+        countLabel.text = String(format: "%d %@", count, getTaskText(for: count))
+    }
     
     private let presenter: TodoListPresenterProtocol
         
@@ -13,7 +23,7 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
     private let countLabel = UILabel()
     private let addButton = UIButton()
     
-    private let tableView =  UITableView()
+    private let tableView = UITableView()
     
     init(presenter: TodoListPresenterProtocol) {
         self.presenter = presenter
@@ -26,7 +36,7 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        presenter.loadTodos()
         addSubViews()
         setupTableView()
         setupSearchController()
@@ -62,14 +72,12 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
     }
-
     
     private func setupTableView() {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(TodoCell.self, forCellReuseIdentifier: "TodoCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -85,8 +93,7 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         
         countLabel.textColor = .white
         countLabel.font = .systemFont(ofSize: 11, weight: .regular)
-        let count = presenter.getTodosCount()
-        countLabel.text = String(format: "%d %@", count, getTaskText(for: count))
+        updateCountLabel()
 
         addButton.setImage(UIImages.pencil, for: .normal)
         addButton.tintColor = .yellow
@@ -140,10 +147,52 @@ extension TodoListViewController: UITableViewDataSource {
 }
 
 extension TodoListViewController: UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         presenter.openTodoPage(for: indexPath.row)
     }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: {
+            guard let task = self.presenter.getTodoViewModel(at: indexPath.row) else {
+                fatalError()
+            }
+            // Создаем предварительный просмотр задачи
+            let preview = TaskPreviewController(taskTitle: task.title, taskDetails: task.description ?? "", taskDate: task.date)
+            return preview
+        }, actionProvider: { _ in
+            
+            // Создаем действия для кнопок
+            let editAction = UIAction(title: "Редактировать", image: UIImages.edit?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { _ in
+
+            })
+            
+            let shareAction = UIAction(title: "Поделиться", image: UIImages.share?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { [weak self] _ in
+                self?.presentShareSheet()
+            })
+            
+            let deleteAction = UIAction(title: "Удалить", image: UIImages.trash, attributes: .destructive, handler: { _ in
+                
+            })
+        
+            return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
+        })
+    }
+    
+    private func presentShareSheet() {
+            let textToShare = "Поделитесь задачей!"
+            let activityVC = UIActivityViewController(activityItems: [textToShare], applicationActivities: nil)
+            
+            if let popoverController = activityVC.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            present(activityVC, animated: true)
+        }
+
 }
 
 extension TodoListViewController: UISearchResultsUpdating {

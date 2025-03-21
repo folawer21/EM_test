@@ -6,6 +6,9 @@ import UIKit
 enum Colors {
     static let white = Color(red: 244, green: 244, blue: 244)
     static let black = Color(red: 4, green: 4, blue: 4, opacity: 1)
+    static let white50 = Color(red: 77, green: 85, blue: 94, opacity: 0.5)
+    static let red = Color(uiColor: UIColors.red)
+    static let black4 = Color(uiColor: UIColors.black4)
 }
 
 // MARK: UIColor
@@ -14,6 +17,9 @@ enum UIColors {
     static let gray = UIColor(hex: "#272729")
     static let black = UIColor(red: 4, green: 4, blue: 4, alpha: 1)
     static let white = UIColor(hex: "#F4F4F4")
+    static let yellow = UIColor(hex: "#FED702")
+    static let black4 = UIColor(hex: "#040404")
+    static let red = UIColor(hex: "#D70015")
 }
 
 

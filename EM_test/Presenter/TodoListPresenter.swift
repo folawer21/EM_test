@@ -6,11 +6,46 @@ protocol TodoListPresenterProtocol {
     func filterTasks(with key: String)
     func openTodoPage(for index: Int)
     func createTodo()
+    
+    func loadTodos()
+    func deleteTodoById(id: String)
 }
 
 
 
 final class TodoListPresenter: TodoListPresenterProtocol {
+    func loadTodos() {
+        interactor?.fetchTodos { [weak self] result in
+            switch result {
+            case .success(let todos):
+                self?.todos = todos
+                self?.updateUI()
+            case .failure(let error):
+                // Обработка ошибки
+                self?.handleError(error)
+            }
+        }
+    }
+    
+    // Удаление задачи по ID
+    func deleteTodoById(id: String) {
+        interactor?.deleteTodo(withId: id)
+        // Обновление UI после удаления
+        loadTodos() // Перезагружаем задачи после удаления
+        updateUI()
+    }
+    
+    // Обновление UI (можно будет вызывать на UI слое)
+    private func updateUI() {
+        view?.updateUI()
+    }
+    
+    // Обработка ошибки
+    private func handleError(_ error: Error) {
+        // Здесь можно показать ошибку на UI
+        print("Error loading todos: \(error)")
+    }
+    
     func openTodoPage(for index: Int) {
         guard index < todos.count else {
             return
@@ -29,50 +64,7 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     var router: TodoRouterProtocol?
     var interactor: TodoInteractorProtocol?
     
-    private var todos = [
-        TodoViewModel(
-            title: "Почитать книгу",
-            isCompleted: true,
-            description: "Составить список необходимых продуктов для ужина. Не забыть проверить, что уже есть в холодильнике.",
-            date: "09/10/24"
-        ),
-        TodoViewModel(
-            title: "Уборка в квартире",
-            isCompleted: false,
-            description: "Провести генеральную уборку в квартире",
-            date: "02/10/24"
-        ),
-        TodoViewModel(
-            title: "Заняться спортом",
-            isCompleted: false,
-            description: "Сходить в спортзал или сделать тренировку дома. Не забыть про разминку и растяжку!",
-            date: "02/10/24"
-        ),
-        TodoViewModel(
-            title: "Работа над проектом",
-            isCompleted: true,
-            description: "Выделить время для работы над проектом на работе. Сфокусироваться на выполнении важных задач",
-            date: "09/10/24"
-        ),
-        TodoViewModel(
-            title: "Вечерний отдых",
-            isCompleted: false,
-            description: "Найти время для расслабления перед сном: посмотреть фильм или послушать музыку",
-            date: "02/10/24"
-        ),
-        TodoViewModel(
-            title: "Зарядка утром",
-            isCompleted: false,
-            description: "АФЫОАОФЫ афыа фыаф ыаф ыва фыафылаывлджат ывфалд ывфтал фыжва лдытфвалдж ыфвальыфвда лдьжфыва лдывалдыфав ь",
-            date: "02/10/24"
-        ),
-        TodoViewModel(
-            title: "Работа над проектом",
-            isCompleted: true,
-            description: "Выделить время для работы над проектом на работе. Сфокусироваться на выполнении важных задач",
-            date: "09/10/24"
-        )
-    ]
+    private var todos: [Todo] = []
     
     func getTodosCount() -> Int {
         todos.count
@@ -83,10 +75,10 @@ final class TodoListPresenter: TodoListPresenterProtocol {
             return nil
         }
         
-        return todos[index]
+        return todos[index].toViewModel()
     }
     
-    func didSelectTodo(at index: Int) {
+    func didSelectTodo(at index: Int) { // TODO: чекнуть надо ли
     }
     
     func filterTasks(with key: String) {

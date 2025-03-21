@@ -18,3 +18,14 @@ final class TodoViewModel: ObservableObject {
     }
     
 }
+
+extension Todo {
+    func toViewModel() -> TodoViewModel {
+        TodoViewModel(
+            title: self.title,
+            isCompleted: self.isCompleted,
+            description: self.description,
+            date: self.date
+        )
+    }
+}
