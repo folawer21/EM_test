@@ -5,7 +5,7 @@ struct Todo {
     let title: String
     let description: String?
     let date: String
-    let isCompleted: Bool
+    var isCompleted: Bool
     
     init(from networkModel: TodoNetwork) {
          self.id = String(networkModel.id)

@@ -181,12 +181,10 @@ extension TodoListViewController: UITableViewDelegate {
             guard let task = self.presenter.getTodoViewModel(at: indexPath.row) else {
                 fatalError()
             }
-            // Создаем предварительный просмотр задачи
             let preview = TaskPreviewController(taskTitle: task.title, taskDetails: task.description ?? "", taskDate: task.date)
             return preview
         }, actionProvider: { _ in
             
-            // Создаем действия для кнопок
             let editAction = UIAction(title: "Редактировать", image: UIImages.edit?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { [weak self] _ in
                 self?.presenter.openTodoPage(for: indexPath.row)
             })
