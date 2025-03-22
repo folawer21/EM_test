@@ -1,6 +1,6 @@
 import SwiftUI
 
-final class TodoViewModel: ObservableObject {
+final class TodoViewModel {
     
     let isCompleted: Bool
     let title: String
@@ -8,6 +8,7 @@ final class TodoViewModel: ObservableObject {
     let date: String
     let id: String
     var toggleAction: () -> Void = {}
+    
     init(id: String,title: String, isCompleted: Bool, description: String?, date: String) {
         self.id = id
         self.title = title
@@ -16,6 +17,9 @@ final class TodoViewModel: ObservableObject {
         self.date = date
     }
     
+    deinit {
+        toggleAction = {}
+    }
 }
 
 extension Todo {

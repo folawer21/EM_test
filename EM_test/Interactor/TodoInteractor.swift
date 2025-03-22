@@ -7,74 +7,76 @@ protocol TodoInteractorProtocol {
     func toggleTodoCompletion(withId id: String)
 }
 
-
 final class TodoInteractor: TodoInteractorProtocol {
     
+    // MARK: - Private Properties
     private let networkService: NetworkServiceProtocol
     private let coreDataService: CoreDataServiceProtocol
-    
-    // Используем UserDefaults для проверки первого запуска
     private let userDefaults = UserDefaults.standard
     private let isFirstLaunchKey = "isFirstLaunch"
-    
+
+    // MARK: - Initializer
     init(networkService: NetworkServiceProtocol = NetworkService(),
          coreDataService: CoreDataServiceProtocol = CoreDataService()) {
         self.networkService = networkService
         self.coreDataService = coreDataService
     }
     
+    // MARK: - Internal Methods
+    
     func saveOrUpdateTodo(todo: Todo) {
-        guard let id = UUID(uuidString: todo.id) else {
-            return
+        guard let id = UUID(uuidString: todo.id) else { return }
+        
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            if self?.coreDataService.getTodoById(id: id) != nil {
+                self?.coreDataService.deleteTodo(withId: todo.id)
+            }
+            self?.coreDataService.saveTodos([todo])
         }
-        if coreDataService.getTodoById(id: id) != nil {
-            coreDataService.deleteTodo(withId: todo.id) // Удаляем старую запись
-        }
-        coreDataService.saveTodos([todo]) // Сохраняем новую версию
     }
     
-    // Функция для получения всех задач
     func fetchTodos(with text: String, completion: @escaping (Result<[Todo], Error>) -> Void) {
-        // Проверяем флаг первого запуска
-        
-        let isFirstLaunch = userDefaults.bool(forKey: isFirstLaunchKey)
-        print(isFirstLaunch)
-        // Если это первый запуск, делаем запрос в сеть
-        if !isFirstLaunch {
-            // Пробуем получить задачи из Core Data
-            let coreDataTodos = coreDataService.fetchTodos(containing: text).map { todoEntity in
-                Todo(from: todoEntity)
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            guard let self = self else { return }
+            let isFirstLaunch = self.userDefaults.bool(forKey: self.isFirstLaunchKey)
+            
+            if !isFirstLaunch {
+                let coreDataTodos = self.coreDataService.fetchTodos(containing: text).map { Todo(from: $0) }
+                
+                if !coreDataTodos.isEmpty {
+                    DispatchQueue.main.async {
+                        completion(.success(coreDataTodos))
+                    }
+                    return
+                }
             }
             
-            if !coreDataTodos.isEmpty {
-                completion(.success(coreDataTodos))
-                return
-            }
-        }
-        
-        // Если это первый запуск или данные не были получены из Core Data, запрашиваем их через API
-        networkService.fetchTodos { [weak self] result in
-            switch result {
-            case .success(let todos):
-                // Сохраняем данные в Core Data после успешного получения из сети
-                let todosModel = todos.map { todo in
-                    Todo(from: todo)
+            self.networkService.fetchTodos { result in
+                switch result {
+                case .success(let todos):
+                    let todosModel = todos.map { Todo(from: $0) }
+                    
+                    DispatchQueue.global(qos: .background).async {
+                        self.coreDataService.saveTodos(todosModel)
+                        self.userDefaults.set(false, forKey: self.isFirstLaunchKey)
+                        
+                        DispatchQueue.main.async {
+                            completion(.success(todosModel))
+                        }
+                    }
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
                 }
-                self?.coreDataService.saveTodos(todosModel)
-                
-                // Устанавливаем флаг первого запуска в UserDefaults
-                self?.userDefaults.set(false, forKey: self?.isFirstLaunchKey ?? "")
-                
-                completion(.success(todosModel))
-            case .failure(let error):
-                completion(.failure(error))
             }
         }
     }
     
-    // Функция для удаления задачи
     func deleteTodo(withId id: String) {
-        coreDataService.deleteTodo(withId: id)
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            self?.coreDataService.deleteTodo(withId: id)
+        }
     }
     
     func toggleTodoCompletion(withId id: String) {
@@ -83,14 +85,16 @@ final class TodoInteractor: TodoInteractorProtocol {
             return
         }
 
-        coreDataService.toggleTodoCompletion(withId: uuid) { success in
-            if success {
-                print("Todo updated successfully")
-            } else {
-                print("Failed to update Todo")
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            self?.coreDataService.toggleTodoCompletion(withId: uuid) { success in
+                DispatchQueue.main.async {
+                    if success {
+                        print("Todo updated successfully")
+                    } else {
+                        print("Failed to update Todo")
+                    }
+                }
             }
         }
     }
-
 }
-

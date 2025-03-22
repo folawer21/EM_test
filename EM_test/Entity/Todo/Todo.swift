@@ -23,7 +23,7 @@ struct Todo {
         self.date = Todo.getCurrentDate()
     }
     
-    init(id: String, title: String, description: String, date: String, isCompleted: Bool) {
+    init(id: String, title: String, description: String?, date: String, isCompleted: Bool) {
         self.id = id
         self.title = title
         self.description = description

@@ -1,5 +1,5 @@
 import CoreData
-import UIKit // TODO: УБРАТЬ ОТСЮДА
+import UIKit
 import Foundation
 
 protocol CoreDataServiceProtocol {
@@ -12,12 +12,15 @@ protocol CoreDataServiceProtocol {
 
 final class CoreDataService: CoreDataServiceProtocol {
     
+    // MARK: - Private Properties
     private let persistentContainer: NSPersistentContainer
     
+    // MARK: - Initializer
     init(container: NSPersistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer) {
         self.persistentContainer = container
     }
     
+    // MARK: - CoreData Operations
     func getTodoById(id: UUID) -> TodoEntity? {
         let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -31,7 +34,6 @@ final class CoreDataService: CoreDataServiceProtocol {
         }
     }
     
-    // Извлекаем todos из Core Data
     func fetchTodos(containing text: String) -> [TodoEntity] {
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
@@ -49,11 +51,9 @@ final class CoreDataService: CoreDataServiceProtocol {
         }
     }
     
-    // Сохраняем todos в Core Data
     func saveTodos(_ todos: [Todo]) {
         let context = persistentContainer.viewContext
         
-        // Для каждой задачи создаем объект TodoEntity
         for todo in todos {
             let todoEntity = TodoEntity(context: context)
             todoEntity.id = UUID(uuidString: todo.id) ?? UUID()
@@ -70,7 +70,6 @@ final class CoreDataService: CoreDataServiceProtocol {
         }
     }
     
-    // Удаляем задачу из Core Data по ID
     func deleteTodo(withId id: String) {
         guard let uuid = UUID(uuidString: id) else {
             print("Invalid UUID string")
@@ -79,13 +78,13 @@ final class CoreDataService: CoreDataServiceProtocol {
         
         let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", uuid as CVarArg) // Работаем с UUID
+        fetchRequest.predicate = NSPredicate(format: "id == %@", uuid as CVarArg)
         
         do {
             let todos = try context.fetch(fetchRequest)
             if let todoToDelete = todos.first {
                 context.delete(todoToDelete)
-                try context.save() // Сохраняем изменения
+                try context.save()
                 print("Todo with ID \(id) deleted successfully.")
             } else {
                 print("Todo with ID \(id) not found.")
@@ -103,11 +102,11 @@ final class CoreDataService: CoreDataServiceProtocol {
         do {
             let results = try context.fetch(fetchRequest)
             if let todoEntity = results.first {
-                todoEntity.isCompleted.toggle() // Меняем isCompleted
+                todoEntity.isCompleted.toggle()
                 try context.save()
                 
                 print("Todo updated: \(todoEntity.todoTitle ?? "nil") - isCompleted: \(todoEntity.isCompleted)")
-                completion(true) // Уведомляем об успешном обновлении
+                completion(true)
             } else {
                 print("Todo with ID \(id) not found")
                 completion(false)
