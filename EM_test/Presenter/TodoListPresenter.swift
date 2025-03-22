@@ -1,3 +1,4 @@
+import Foundation
 
 protocol TodoListPresenterProtocol {
     func getTodosCount() -> Int
@@ -8,7 +9,8 @@ protocol TodoListPresenterProtocol {
     func createTodo()
     
     func loadTodos()
-    func deleteTodoById(id: String)
+    func deleteTodoByIndex(index: Int)
+    func toggleTodo(withId id: String)
 }
 
 
@@ -18,7 +20,7 @@ final class TodoListPresenter: TodoListPresenterProtocol {
         interactor?.fetchTodos { [weak self] result in
             switch result {
             case .success(let todos):
-                self?.todos = todos
+                self?.todos = todos.reversed()
                 self?.updateUI()
             case .failure(let error):
                 // Обработка ошибки
@@ -28,7 +30,11 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     }
     
     // Удаление задачи по ID
-    func deleteTodoById(id: String) {
+    func deleteTodoByIndex(index: Int) {
+        guard index < todos.count else {
+            return
+        }
+        let id = todos[index].id
         interactor?.deleteTodo(withId: id)
         // Обновление UI после удаления
         loadTodos() // Перезагружаем задачи после удаления
@@ -37,7 +43,9 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     
     // Обновление UI (можно будет вызывать на UI слое)
     private func updateUI() {
-        view?.updateUI()
+        DispatchQueue.main.async { [weak self] in
+            self?.view?.updateUI()
+        }
     }
     
     // Обработка ошибки
@@ -52,11 +60,19 @@ final class TodoListPresenter: TodoListPresenterProtocol {
         }
         
         let todo = todos[index]
-        router?.routeToTodoPage(title: todo.title, description: todo.description ?? "", date: todo.date)
+        router?.routeToTodoPage(id: todo.id, title: todo.title, description: todo.description ?? "", date: todo.date, isCompleted: todo.isCompleted) { [weak self] todo in
+            guard let todo = todo else { return }
+            self?.interactor?.saveOrUpdateTodo(todo: todo)
+            self?.loadTodos()
+        }
     }
     
     func createTodo() {
-        router?.routeToCreationTodo()
+        router?.routeToCreationTodo() { [weak self] todo in
+            guard let todo = todo else { return }
+            self?.interactor?.saveOrUpdateTodo(todo: todo)
+            self?.loadTodos()
+        }
     }
     
     
@@ -74,14 +90,31 @@ final class TodoListPresenter: TodoListPresenterProtocol {
         guard index < todos.count else {
             return nil
         }
-        
-        return todos[index].toViewModel()
+
+        let viewModel = todos[index].toViewModel()
+        viewModel.toggleAction = { [weak self] in
+            guard let id = self?.todos[index].id else {
+                print("ASdASDDASD")
+                return }
+            print("000000",id)
+            self?.toggleTodo(withId: id)
+        }
+        return viewModel
     }
     
     func didSelectTodo(at index: Int) { // TODO: чекнуть надо ли
     }
     
     func filterTasks(with key: String) {
+    }
+    
+    func toggleTodo(withId id: String) {
+        print(888888888)
+        print(todos)
+        print(999999999)
+        interactor?.toggleTodoCompletion(withId: id)
+        loadTodos()
+        print(todos)
     }
     
 }

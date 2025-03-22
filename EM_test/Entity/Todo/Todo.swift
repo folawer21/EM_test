@@ -15,11 +15,11 @@ struct Todo {
          self.date = Todo.getCurrentDate()
      }
     
-    init(from databaseModel: TodoEntity) {
+    init(from databaseModel: TodoEntity, isCompleted: Bool? = nil) {
         self.id = databaseModel.id?.uuidString ?? UUID().uuidString
         self.title = databaseModel.todoTitle ?? ""
         self.description = databaseModel.todoDescription
-        self.isCompleted = databaseModel.isCompleted
+        self.isCompleted = isCompleted != nil ? isCompleted! : databaseModel.isCompleted
         self.date = Todo.getCurrentDate()
     }
     

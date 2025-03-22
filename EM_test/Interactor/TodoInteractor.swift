@@ -3,6 +3,8 @@ import Foundation
 protocol TodoInteractorProtocol {
     func fetchTodos(completion: @escaping (Result<[Todo], Error>) -> Void)
     func deleteTodo(withId id: String)
+    func saveOrUpdateTodo(todo: Todo)
+    func toggleTodoCompletion(withId id: String)
 }
 
 
@@ -19,6 +21,16 @@ final class TodoInteractor: TodoInteractorProtocol {
          coreDataService: CoreDataServiceProtocol = CoreDataService()) {
         self.networkService = networkService
         self.coreDataService = coreDataService
+    }
+    
+    func saveOrUpdateTodo(todo: Todo) {
+        guard let id = UUID(uuidString: todo.id) else {
+            return
+        }
+        if coreDataService.getTodoById(id: id) != nil {
+            coreDataService.deleteTodo(withId: todo.id) // Удаляем старую запись
+        }
+        coreDataService.saveTodos([todo]) // Сохраняем новую версию
     }
     
     // Функция для получения всех задач
@@ -64,5 +76,21 @@ final class TodoInteractor: TodoInteractorProtocol {
     func deleteTodo(withId id: String) {
         coreDataService.deleteTodo(withId: id)
     }
+    
+    func toggleTodoCompletion(withId id: String) {
+        guard let uuid = UUID(uuidString: id) else {
+            print("Invalid UUID string")
+            return
+        }
+
+        coreDataService.toggleTodoCompletion(withId: uuid) { success in
+            if success {
+                print("Todo updated successfully")
+            } else {
+                print("Failed to update Todo")
+            }
+        }
+    }
+
 }
 

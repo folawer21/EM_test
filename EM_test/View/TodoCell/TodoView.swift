@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct TodoView: View {
-    @ObservedObject private var viewModel: TodoViewModel
+    private var viewModel: TodoViewModel
     init(viewModel: TodoViewModel) {
         self.viewModel = viewModel
     }
@@ -38,7 +38,7 @@ struct TodoView: View {
 private extension TodoView {
     func checkMark() -> some View {
         Button(
-            action: viewModel.toggleCompletion,
+            action: viewModel.toggleAction,
             label: {
                 viewModel.isCompleted ? Images.filledCheckMark : Images.emptyCheckMark
             }
@@ -55,8 +55,10 @@ private extension TodoView {
     }
 }
 
+#if DEBUG
 #Preview {
     let vm = TodoViewModel (
+        id: "134",
         title: "Уборка в квартире",
         isCompleted: false,
         description: "Провести гениальную уборку в квартире",
@@ -64,3 +66,4 @@ private extension TodoView {
     )
     TodoView(viewModel: vm)
 }
+#endif

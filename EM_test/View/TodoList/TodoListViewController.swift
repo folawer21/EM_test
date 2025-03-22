@@ -164,16 +164,16 @@ extension TodoListViewController: UITableViewDelegate {
         }, actionProvider: { _ in
             
             // Создаем действия для кнопок
-            let editAction = UIAction(title: "Редактировать", image: UIImages.edit?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { _ in
-
+            let editAction = UIAction(title: "Редактировать", image: UIImages.edit?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { [weak self] _ in
+                self?.presenter.openTodoPage(for: indexPath.row)
             })
             
             let shareAction = UIAction(title: "Поделиться", image: UIImages.share?.withTintColor(.white, renderingMode: .alwaysOriginal), handler: { [weak self] _ in
                 self?.presentShareSheet()
             })
             
-            let deleteAction = UIAction(title: "Удалить", image: UIImages.trash, attributes: .destructive, handler: { _ in
-                
+            let deleteAction = UIAction(title: "Удалить", image: UIImages.trash, attributes: .destructive, handler: { [weak self] _ in
+                self?.presenter.deleteTodoByIndex(index: indexPath.row)
             })
         
             return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
