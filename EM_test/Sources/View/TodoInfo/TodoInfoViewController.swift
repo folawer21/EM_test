@@ -1,22 +1,8 @@
 import UIKit
 
 final class TodoInfoViewController: UIViewController {
-    func setup(id: String, title: String, description: String, date: String, isCompleted: Bool) {
-        
-        self.id = id
-        self.todoTitle = title
-        self.todoDescription = description
-        self.date = date
-        self.isCompleted = isCompleted
-        
-        titleTextField.text = title
-        descriptionTextView.text = description
-        dateLabel.text = date
-    }
     
-    func setupCloseAction(onClose: @escaping (Todo?) -> Void) {
-        self.onClose = onClose
-    }
+    // MARK: - Private Properties
     
     private var onClose: ((Todo?) -> Void)?
     private var id: String?
@@ -24,6 +10,7 @@ final class TodoInfoViewController: UIViewController {
     private var todoDescription: String?
     private var date: String?
     private var isCompleted: Bool?
+    
     private let titleTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Заголовок"
@@ -47,6 +34,26 @@ final class TodoInfoViewController: UIViewController {
         return label
     }()
     
+    // MARK: - Setup
+    
+    func setup(id: String, title: String, description: String, date: String, isCompleted: Bool) {
+        self.id = id
+        self.todoTitle = title
+        self.todoDescription = description
+        self.date = date
+        self.isCompleted = isCompleted
+        
+        titleTextField.text = title
+        descriptionTextView.text = description
+        dateLabel.text = date
+    }
+    
+    func setupCloseAction(onClose: @escaping (Todo?) -> Void) {
+        self.onClose = onClose
+    }
+    
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,34 +65,32 @@ final class TodoInfoViewController: UIViewController {
         descriptionTextView.delegate = self
     }
     
+    // MARK: - Navigation Bar Setup
+    
     private func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.tintColor = UIColors.yellow
         
-        // Создаем кастомную кнопку назад с иконкой и текстом
         let backButton = UIButton(type: .system)
-        
-        // Добавляем стрелку назад и текст
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal) // Стандартная стрелка назад
+        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
         backButton.setTitle("Назад", for: .normal)
-        backButton.setTitleColor(UIColors.yellow, for: .normal) // Цвет текста
-        backButton.titleLabel?.font = UIFont.systemFont(ofSize: 17) // Настроить шрифт по необходимости
+        backButton.setTitleColor(UIColors.yellow, for: .normal)
+        backButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
         
-        // Добавляем отступы, чтобы текст и иконка не накладывались друг на друга
         backButton.imageEdgeInsets = UIEdgeInsets(top: 0, left: -6, bottom: 0, right: 6)
         backButton.titleEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: -10)
         
-        // Действие по нажатию
         backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         
         let backBarButtonItem = UIBarButtonItem(customView: backButton)
         navigationItem.leftBarButtonItem = backBarButtonItem
     }
     
+    // MARK: - Actions
+    
     @objc private func backTapped() {
-        
         navigationController?.popViewController(animated: true)
-        if titleTextField.text == todoTitle && descriptionTextView.text == todoDescription  {
+        if titleTextField.text == todoTitle && descriptionTextView.text == todoDescription {
             return
         }
         let newId = id ?? UUID().uuidString
@@ -101,6 +106,8 @@ final class TodoInfoViewController: UIViewController {
             self?.onClose?(newTodo)
         }
     }
+    
+    // MARK: - UI Setup
     
     private func setupView() {
         titleTextField.translatesAutoresizingMaskIntoConstraints = false
@@ -132,7 +139,8 @@ final class TodoInfoViewController: UIViewController {
     }
 }
 
-// MARK: - Дата форматтер
+// MARK: - Date Formatter Helper
+
 final class DateFormatterHelper {
     static func getCurrentDate() -> String {
         let formatter = DateFormatter()
@@ -141,7 +149,8 @@ final class DateFormatterHelper {
     }
 }
 
-// MARK: - Placeholder для UITextView
+// MARK: - UITextView Delegate
+
 extension TodoInfoViewController: UITextViewDelegate {
     func textViewDidBeginEditing(_ textView: UITextView) {
         if textView.text == "Добавьте описание" && textView.textColor == .lightGray {

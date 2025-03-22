@@ -5,16 +5,7 @@ protocol TodoListViewProtocol: AnyObject {
 }
 
 final class TodoListViewController: UIViewController, TodoListViewProtocol {
-    func updateUI() {
-        tableView.reloadData()
-        updateCountLabel()
-    }
-    
-    private func updateCountLabel() {
-        let count = presenter.getTodosCount()
-        countLabel.text = String(format: "%d %@", count, getTaskText(for: count))
-    }
-    
+    // MARK: - Properties
     private let presenter: TodoListPresenterProtocol
     
     private let bottomView = UIView()
@@ -25,6 +16,8 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
     
     private let tableView = UITableView()
     
+    // MARK: - Initializer
+    
     init(presenter: TodoListPresenterProtocol) {
         self.presenter = presenter
         super.init(nibName: nil, bundle: nil)
@@ -33,6 +26,8 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Lifecycle Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,6 +43,8 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.prefersLargeTitles = true
     }
+    
+    // MARK: - UI Setup
     
     private func addSubViews() {
         bottomView.addSubview(countLabel)
@@ -125,11 +122,36 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         ])
     }
     
+    // MARK: - UI Updates
+    func updateUI() {
+        tableView.reloadData()
+        updateCountLabel()
+    }
+    
+    private func updateCountLabel() {
+        let count = presenter.getTodosCount()
+        countLabel.text = String(format: "%d %@", count, getTaskText(for: count))
+    }
+    
     @objc private func addTodo() {
         presenter.createTodo()
     }
+    
+    private func getTaskText(for count: Int) -> String {
+        let lastDigit = count % 10
+        let lastTwoDigits = count % 100
+        
+        if lastDigit == 1 && lastTwoDigits != 11 {
+            return "Задача"
+        } else if lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20) {
+            return "Задачи"
+        } else {
+            return "Задач"
+        }
+    }
 }
 
+// MARK: - TableView DataSource
 extension TodoListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         presenter.getTodosCount()
@@ -146,6 +168,7 @@ extension TodoListViewController: UITableViewDataSource {
     }
 }
 
+// MARK: - TableView Delegate
 extension TodoListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -192,29 +215,13 @@ extension TodoListViewController: UITableViewDelegate {
         
         present(activityVC, animated: true)
     }
-    
 }
 
+// MARK: - Search Controller
 extension TodoListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         if let searchText = searchController.searchBar.text {
             presenter.filterTodo(with: searchText)
-        }
-    }
-}
-
-
-extension TodoListViewController {
-    private func getTaskText(for count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastDigit == 1 && lastTwoDigits != 11 {
-            return "Задача"
-        } else if lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20) {
-            return "Задачи"
-        } else {
-            return "Задач"
         }
     }
 }

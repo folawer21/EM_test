@@ -2,7 +2,7 @@ import CoreData
 
 class MockCoreDataStack {
     static var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "YourModelName")
+        let container = NSPersistentContainer(name: "EF_Tests")
         let description = NSPersistentStoreDescription()
         description.type = NSInMemoryStoreType 
         container.persistentStoreDescriptions = [description]

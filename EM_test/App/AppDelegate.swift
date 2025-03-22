@@ -1,10 +1,3 @@
-//
-//  AppDelegate.swift
-//  EM_test
-//
-//  Created by Александр  Сухинин on 20.03.2025.
-//
-
 import UIKit
 import CoreData
 
