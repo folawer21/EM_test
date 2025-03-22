@@ -16,7 +16,7 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
     }
     
     private let presenter: TodoListPresenterProtocol
-        
+    
     private let bottomView = UIView()
     private let bottomSafeView = UIView()
     
@@ -94,7 +94,7 @@ final class TodoListViewController: UIViewController, TodoListViewProtocol {
         countLabel.textColor = .white
         countLabel.font = .systemFont(ofSize: 11, weight: .regular)
         updateCountLabel()
-
+        
         addButton.setImage(UIImages.pencil, for: .normal)
         addButton.tintColor = .yellow
         addButton.addTarget(self, action: #selector(addTodo), for: .touchUpInside)
@@ -175,34 +175,34 @@ extension TodoListViewController: UITableViewDelegate {
             let deleteAction = UIAction(title: "Удалить", image: UIImages.trash, attributes: .destructive, handler: { [weak self] _ in
                 self?.presenter.deleteTodoByIndex(index: indexPath.row)
             })
-        
+            
             return UIMenu(title: "", children: [editAction, shareAction, deleteAction])
         })
     }
     
     private func presentShareSheet() {
-            let textToShare = "Поделитесь задачей!"
-            let activityVC = UIActivityViewController(activityItems: [textToShare], applicationActivities: nil)
-            
-            if let popoverController = activityVC.popoverPresentationController {
-                popoverController.sourceView = self.view
-                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-                popoverController.permittedArrowDirections = []
-            }
-            
-            present(activityVC, animated: true)
+        let textToShare = "Поделитесь задачей!"
+        let activityVC = UIActivityViewController(activityItems: [textToShare], applicationActivities: nil)
+        
+        if let popoverController = activityVC.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
         }
-
+        
+        present(activityVC, animated: true)
+    }
+    
 }
 
 extension TodoListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        if let searchText = searchController.searchBar.text, !searchText.isEmpty {
-            presenter.filterTasks(with: searchText)
+        if let searchText = searchController.searchBar.text {
+            presenter.filterTodo(with: searchText)
         }
-        tableView.reloadData()
     }
 }
+
 
 extension TodoListViewController {
     private func getTaskText(for count: Int) -> String {

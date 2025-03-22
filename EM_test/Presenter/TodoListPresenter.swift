@@ -4,10 +4,10 @@ protocol TodoListPresenterProtocol {
     func getTodosCount() -> Int
     func getTodoViewModel(at index: Int) -> TodoViewModel?
     func didSelectTodo(at index: Int)
-    func filterTasks(with key: String)
     func openTodoPage(for index: Int)
     func createTodo()
     
+    func filterTodo(with text: String)
     func loadTodos()
     func deleteTodoByIndex(index: Int)
     func toggleTodo(withId id: String)
@@ -17,10 +17,15 @@ protocol TodoListPresenterProtocol {
 
 final class TodoListPresenter: TodoListPresenterProtocol {
     func loadTodos() {
-        interactor?.fetchTodos { [weak self] result in
+        fetch()
+    }
+    
+    private func fetch(text: String = "") {
+        interactor?.fetchTodos(with: text) { [weak self] result in
             switch result {
             case .success(let todos):
                 self?.todos = todos.reversed()
+                self?.filteredTodos = todos.reversed()
                 self?.updateUI()
             case .failure(let error):
                 // Обработка ошибки
@@ -55,11 +60,11 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     }
     
     func openTodoPage(for index: Int) {
-        guard index < todos.count else {
+        guard index < filteredTodos.count else {
             return
         }
         
-        let todo = todos[index]
+        let todo = filteredTodos[index]
         router?.routeToTodoPage(id: todo.id, title: todo.title, description: todo.description ?? "", date: todo.date, isCompleted: todo.isCompleted) { [weak self] todo in
             guard let todo = todo else { return }
             self?.interactor?.saveOrUpdateTodo(todo: todo)
@@ -81,19 +86,20 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     var interactor: TodoInteractorProtocol?
     
     private var todos: [Todo] = []
+    private var filteredTodos: [Todo] = []
     
     func getTodosCount() -> Int {
-        todos.count
+        filteredTodos.count
     }
     
     func getTodoViewModel(at index: Int) -> TodoViewModel? {
-        guard index < todos.count else {
+        guard index < filteredTodos.count else {
             return nil
         }
 
-        let viewModel = todos[index].toViewModel()
+        let viewModel = filteredTodos[index].toViewModel()
         viewModel.toggleAction = { [weak self] in
-            guard let id = self?.todos[index].id else {
+            guard let id = self?.filteredTodos[index].id else {
                 print("ASdASDDASD")
                 return }
             print("000000",id)
@@ -105,16 +111,19 @@ final class TodoListPresenter: TodoListPresenterProtocol {
     func didSelectTodo(at index: Int) { // TODO: чекнуть надо ли
     }
     
-    func filterTasks(with key: String) {
-    }
-    
     func toggleTodo(withId id: String) {
-        print(888888888)
-        print(todos)
-        print(999999999)
         interactor?.toggleTodoCompletion(withId: id)
         loadTodos()
-        print(todos)
+    }
+    
+    func filterTodo(with text: String) {
+        if text.isEmpty {
+            filteredTodos = todos
+            view?.updateUI()
+        } else {
+            filteredTodos = todos.filter { $0.title.lowercased().contains(text.lowercased()) }
+            view?.updateUI()
+        }
     }
     
 }

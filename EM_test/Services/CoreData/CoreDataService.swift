@@ -3,7 +3,7 @@ import UIKit // TODO: УБРАТЬ ОТСЮДА
 import Foundation
 
 protocol CoreDataServiceProtocol {
-    func fetchTodos() -> [TodoEntity]
+    func fetchTodos(containing text: String) -> [TodoEntity]
     func saveTodos(_ todos: [Todo])
     func deleteTodo(withId id: String)
     func getTodoById(id: UUID) -> TodoEntity?
@@ -32,13 +32,19 @@ final class CoreDataService: CoreDataServiceProtocol {
     }
     
     // Извлекаем todos из Core Data
-    func fetchTodos() -> [TodoEntity] {
+    func fetchTodos(containing text: String) -> [TodoEntity] {
+        let context = persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
+        
+        if !text.isEmpty {
+            fetchRequest.predicate = NSPredicate(format: "todoTitle CONTAINS[cd] %@", text)
+        }
+        
         do {
-            let todos = try persistentContainer.viewContext.fetch(fetchRequest)
-            return todos
+            let todoEntities = try context.fetch(fetchRequest)
+            return todoEntities
         } catch {
-            print("Error fetching todos from Core Data: \(error.localizedDescription)")
+            print("Error fetching todos: \(error.localizedDescription)")
             return []
         }
     }
@@ -90,25 +96,25 @@ final class CoreDataService: CoreDataServiceProtocol {
     }
     
     func toggleTodoCompletion(withId id: UUID, completion: @escaping (Bool) -> Void) {
-            let context = persistentContainer.viewContext
-            let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-
-            do {
-                let results = try context.fetch(fetchRequest)
-                if let todoEntity = results.first {
-                    todoEntity.isCompleted.toggle() // Меняем isCompleted
-                    try context.save()
-                    
-                    print("Todo updated: \(todoEntity.todoTitle ?? "nil") - isCompleted: \(todoEntity.isCompleted)")
-                    completion(true) // Уведомляем об успешном обновлении
-                } else {
-                    print("Todo with ID \(id) not found")
-                    completion(false)
-                }
-            } catch {
-                print("Error toggling completion: \(error.localizedDescription)")
+        let context = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let todoEntity = results.first {
+                todoEntity.isCompleted.toggle() // Меняем isCompleted
+                try context.save()
+                
+                print("Todo updated: \(todoEntity.todoTitle ?? "nil") - isCompleted: \(todoEntity.isCompleted)")
+                completion(true) // Уведомляем об успешном обновлении
+            } else {
+                print("Todo with ID \(id) not found")
                 completion(false)
             }
+        } catch {
+            print("Error toggling completion: \(error.localizedDescription)")
+            completion(false)
         }
+    }
 }

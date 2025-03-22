@@ -1,7 +1,7 @@
 import Foundation
 
 protocol TodoInteractorProtocol {
-    func fetchTodos(completion: @escaping (Result<[Todo], Error>) -> Void)
+    func fetchTodos(with text: String, completion: @escaping (Result<[Todo], Error>) -> Void)
     func deleteTodo(withId id: String)
     func saveOrUpdateTodo(todo: Todo)
     func toggleTodoCompletion(withId id: String)
@@ -34,7 +34,7 @@ final class TodoInteractor: TodoInteractorProtocol {
     }
     
     // Функция для получения всех задач
-    func fetchTodos(completion: @escaping (Result<[Todo], Error>) -> Void) {
+    func fetchTodos(with text: String, completion: @escaping (Result<[Todo], Error>) -> Void) {
         // Проверяем флаг первого запуска
         
         let isFirstLaunch = userDefaults.bool(forKey: isFirstLaunchKey)
@@ -42,7 +42,7 @@ final class TodoInteractor: TodoInteractorProtocol {
         // Если это первый запуск, делаем запрос в сеть
         if !isFirstLaunch {
             // Пробуем получить задачи из Core Data
-            let coreDataTodos = coreDataService.fetchTodos().map { todoEntity in
+            let coreDataTodos = coreDataService.fetchTodos(containing: text).map { todoEntity in
                 Todo(from: todoEntity)
             }
             
